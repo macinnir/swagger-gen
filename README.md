@@ -3,7 +3,31 @@
 # About
 
 > The goal behind this package is to recursively search for tags within a project and build a swagger file based off of what it finds. It purposely does not use language-specific reflection (e.g. golang ast) so as to leave open the option of multi-language support. 
+
 > In this initial commit, it finds model fields based on golang structs.  To the point of cross-language support, this will obviously need to change. Also, there are several hard-coded things in the code that need to be updated, so please treat this project as a PoC/WIP.  
+
+# Installation
+```bash
+go get github.com/macinnir/swagger-gen 
+
+```
+
+# Usage
+Very helpful if you add your `path/to/go/bin` to your environment path so you can simply run `swagger-gen` from the cli. 
+
+E.g. Windows: %GOPATH%/bin
+*nix: $GOPATH/bin
+
+```
+./swagger-gen -s "src/dir" -o "dest/dir" -f 
+```
+
+## Options
+Name | Flag | Description | Default 
+---- | ---- | ----------- | -------
+Source | -s | The source directory of your code you want scanned. | `.` (Current directory)
+Output | -o | The output directory where you want the swagger spec (e.g. `swagger.json`) written to. | `.` (Current Directory)
+Format | -f | The format of the output file. Possible values: `json` or `yaml` | `json` 
 
 # Comment Tags
 
