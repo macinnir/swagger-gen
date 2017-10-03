@@ -1,0 +1,7 @@
+.idea
+swagger-gen
+swagger.json
+swagger.yaml
+debug
+dist/*
+*.exe
