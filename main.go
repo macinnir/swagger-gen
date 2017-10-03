@@ -12,9 +12,9 @@ import (
 
 func main() {
 
-	sourceDir := flag.String("src", ".", "The root of the source code you want swagger-gen to scan and build a swagger spec from. Defaults to current directory")
-	outDir := flag.String("out", ".", "The path to the directory where the generated swagger file will be output to. Defaults to current directory")
-	format := flag.String("format", "json", "Output format. json | yaml. Defaults to json")
+	sourceDir := flag.String("s", ".", "The root of the source code you want swagger-gen to scan and build a swagger spec from. Defaults to current directory")
+	outDir := flag.String("o", ".", "The path to the directory where the generated swagger file will be output to. Defaults to current directory")
+	format := flag.String("f", "json", "Output format. json | yaml. Defaults to json")
 
 	flag.Parse()
 
