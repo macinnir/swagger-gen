@@ -82,3 +82,23 @@ func readLines(path string) ([]string, error) {
 	}
 	return lines, scanner.Err()
 }
+
+// ReadJSONToBytes reads a JSON file to a string
+func ReadJSONToBytes(filePath string) (s []byte, err error) {
+
+	if _, err = os.Stat(filePath); os.IsNotExist(err) {
+		return
+	}
+
+	var raw []byte
+
+	raw, err = ioutil.ReadFile(filePath)
+
+	if err != nil {
+		return
+	}
+
+	s = raw
+
+	return
+}
