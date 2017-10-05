@@ -66,8 +66,8 @@ func TestParseRouteParam(t *testing.T) {
 		t.Errorf("ParseRouteParam should have a nil error (actually %s)", err.Error())
 	}
 
-	if param.Type != "int" {
-		t.Errorf("ParseRouteParam should have returned Param with Type == %s (actually %s)", "int", param.Type)
+	if param.Type != "integer" {
+		t.Errorf("ParseRouteParam should have returned Param with Type == %s (actually %s)", "integer", param.Type)
 	}
 
 	if param.In != "path" {
