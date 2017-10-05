@@ -22,24 +22,35 @@ E.g. Windows: %GOPATH%/bin
 *nix: $GOPATH/bin
 
 ```
-./swagger-gen -s "src/dir" -o "dest/dir" -f 
+./swagger-gen -s src/dir -o dest/dir -f json
 ```
 
 ## Options
 Name | Flag | Description | Default 
 ---- | ---- | ----------- | -------
+Init | -i | Initializes a swagger-meta.json file with default values. It does not prompt for information (yet) so this is just a convenience method to build a placeholder file for you to put in your own information. *Does not work with other commands and will quit after the `swagger-meta.json` file has been generated.* | n/a
 Source | -s | The source directory of your code you want scanned. | `.` (Current directory)
 Output | -o | The output directory where you want the swagger spec (e.g. `swagger.json`) written to. | `.` (Current Directory)
 Format | -f | The format of the output file. Possible values: `json` or `yaml` | `json` 
 
-# Comment Tags
+# Comments
+
+## Routes 
+
+### @route 
+
+Positional Arguments for the `@route` tag:
+
+- **OperationID** - String global name of the operation (e.g. `GetUsers`)
+- **Method** - String Method (e.g. `GET`|`POST`|`PUT`|`DELETE`, etc.)
+- **Route** - String route (e.g. `/users`)
+- **Description** - String description of the route 
 
 ```
-    // @param [fieldName] [dataType] [required|optional] in:[transport] [description]
-    // @param foo int required in:query This is the description of the required query int field `foo`
+    // @route GetFoo /foo Returns a foo object 
 ```
 
-## @param
+### @param
 
 Positional Arguments for the `@param` tag:
 
@@ -58,18 +69,42 @@ Because only the first three arguments are required, parameters, therefore, can 
 
 ```
 // Required path param  
-// GET, DELETE, PUT
-// @param foo int
+// @param foo int in:path This is the foo param
 
 // Required body param 
-// POST
-// @param foo int
+// @param foo int in:body This is the foo param
 
-// @param foo int in:path
-// @param foo int in:path optional
-optional
-required
+// Optional params
+// @param foo int in:path This is the foo param
+// @param foo int in:path optional This is the foo param
+
 ```
+
+### @return 
+
+Positional parameters for the `@return` tag:
+
+- **ResponseCode** The numeric response code (e.g. `200`)
+- **ResponseContent**
+    - `empty` is for empty responses (e.g. for 204 no content)
+    - Name of one or more models. An array of models is represented with a prefix of `[]`
+- **Description** Description of the response 
+
+```
+    // @return 200 Foo Returns a Foo object 
+    // @return 200 []Foo Returns a collection of Foo objects 
+    // @return 204 empty The Foo object was created
+    // @return 400 ErrorObj There was an error when creating the Foo object
+    // @return 404 empty The foo object was not found 
+```
+
+## Models 
+
+### @model
+
+Positional parameters for the `@model` tag:
+- **ModelName** Global identifier for the ModelName to be referenced when a route specifies an input and/or return model.
+
 
 ## @tag
 
