@@ -36,14 +36,15 @@ func main() {
 		swagger.Info.Contact = Contact{
 			"example@email.com",
 		}
-		swagger.Host = "myhost.com"
-		swagger.BasePath = "/v1"
 
 		swagger.Info.License = License{
 			"Apache 2.0",
 			"http://www.apache.org/licenses/LICENSE-2.0.html",
 		}
 
+		swagger.Host = "myhost.com"
+		swagger.BasePath = "/v1"
+		swagger.Tags = []Tag{}
 		swagger.Schemes = []string{
 			"http",
 		}
