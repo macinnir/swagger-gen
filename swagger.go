@@ -4,13 +4,24 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"strconv"
 	"strings"
 )
 
+type Swaggerf struct {
+	Swagger Swagger
+}
+
+func (s *Swaggerf) ParseSwaggerConfig(jsonBytes []byte) {
+
+	json.Unmarshal(jsonBytes, &s.Swagger)
+
+}
+
 // BuildSwagger builds a swagger file
-func BuildSwagger(rootPath string) Swagger {
+func (s *Swaggerf) BuildSwagger(rootPath string) {
 
 	log.Printf("Building swagger file from path %s", rootPath)
 	sio := &Sio{}
@@ -46,34 +57,11 @@ func BuildSwagger(rootPath string) Swagger {
 		}
 	}
 
-	swagger := Swagger{}
-
-	swagger.Swagger = "2.0"
-	swagger.Info = SwaggerInfo{}
-	swagger.Info.Description = "Some Description"
-	swagger.Info.TermsOfService = "TOS"
-	swagger.Info.Title = "Some Title"
-	swagger.Info.Version = "0.1.0"
-	swagger.Info.Contact = Contact{
-		"rob.macinnis@gmail.com",
-	}
-	swagger.Host = "goalerfy.com"
-	swagger.BasePath = "/v1"
-
-	swagger.Info.License = License{
-		"Apache 2.0",
-		"http://www.apache.org/licenses/LICENSE-2.0.html",
-	}
-
-	swagger.Schemes = []string{
-		"http",
-	}
-
-	swagger.Paths = map[string]map[string]Path{}
+	s.Swagger.Paths = map[string]map[string]Path{}
 
 	for pathName, routes := range allRoutes {
-		swagger.Paths[pathName] = map[string]Path{}
-		swagger.Tags = []Tag{}
+		s.Swagger.Paths[pathName] = map[string]Path{}
+		s.Swagger.Tags = []Tag{}
 		for _, route := range routes {
 			path := Path{}
 			// path.Description = route.Comments[0]
@@ -106,11 +94,11 @@ func BuildSwagger(rootPath string) Swagger {
 
 				path.Responses[strconv.Itoa(response.ResponseCode)] = pr
 			}
-			swagger.Paths[pathName][strings.ToLower(route.Verb)] = path
+			s.Swagger.Paths[pathName][strings.ToLower(route.Verb)] = path
 		}
 	}
 
-	swagger.Definitions = map[string]ModelDefinition{}
+	s.Swagger.Definitions = map[string]ModelDefinition{}
 
 	for _, model := range allModels {
 
@@ -126,8 +114,6 @@ func BuildSwagger(rootPath string) Swagger {
 			definition.Properties[field.Name] = property
 		}
 
-		swagger.Definitions[model.Name] = definition
+		s.Swagger.Definitions[model.Name] = definition
 	}
-
-	return swagger
 }
