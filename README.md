@@ -87,7 +87,7 @@ Positional Arguments for the `@route` tag:
 - **Description** - String description of the route 
 
 ```
-    // @route GetFoo /foo Returns a foo object 
+    // @route GetFoo GET /foo Returns a foo object 
 ```
 
 ### @param
