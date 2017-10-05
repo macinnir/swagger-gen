@@ -1,11 +1,13 @@
 package main
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestGetRoutes(t *testing.T) {
 
 	lines := []string{
-		"// @route foo",
+		"// @route getFoo GET /foo Gets a foo object",
 		"type Foo struct {",
 		"",
 		"  FooProp1 int",
@@ -31,7 +33,7 @@ func TestParseRoute(t *testing.T) {
 	comments := []string{
 		"GetFoo gets foo",
 	}
-	line := "GetFoo GET /foo"
+	line := "GetFoo GET /foo Returns a Foo object"
 
 	route, err := ParseRoute(line, 0, "some/file/path", comments)
 
