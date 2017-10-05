@@ -25,6 +25,7 @@ func main() {
 
 	swaggerMetaPath := path.Join(*sourceDir, "swagger-meta.json")
 
+	// Init command (-i)
 	if *init == true {
 		swagger := Swagger{}
 		swagger.Swagger = "2.0"

@@ -18,8 +18,8 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 
 	var symbols []Symbol
 
-	// Routes
-	symbols, err = GetSymbols(lines, "@route ")
+	// Find where the symbols live
+	symbols, err = GetSymbols(lines, fmt.Sprintf("@%s", TagRoute))
 
 	if err != nil {
 		return
@@ -35,29 +35,30 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 		route := Route{}
 		comments, _, blockEnd := GetCommentBlock(lines, symbol.LineNum)
 
-		tagMap := ParseTags(comments)
+		// Parse the symbols inside this comment block
+		symbolMap := ParseSymbols(comments)
 
 		// Check that the route field exists (only use the first)
 		// Note: There may be more than one route tag, but anything after the first is ignored
-		if _, ok := tagMap["route"]; !ok {
+		if _, ok := symbolMap[TagRoute]; !ok {
 			log.Printf("No routes found at path %s", filePath)
 			continue
 		}
 
-		if len(tagMap["route"]) < 1 {
+		if len(symbolMap[TagRoute]) < 1 {
 			log.Printf("No routes found at path %s", filePath)
 			continue
 		}
 
-		route, routeErr := ParseRoute(tagMap["route"][0], blockEnd+1, filePath, comments)
+		route, routeErr := ParseRoute(symbolMap[TagRoute][0], blockEnd+1, filePath, comments)
 
 		if routeErr != nil {
 			log.Printf("Route Error: %s", routeErr.Error())
 		}
 
 		// Return tags
-		if _, ok := tagMap["return"]; ok {
-			for _, ret := range tagMap["return"] {
+		if _, ok := symbolMap[TagReturn]; ok {
+			for _, ret := range symbolMap[TagReturn] {
 
 				response, err := ParseRouteResponse(ret)
 
@@ -70,8 +71,8 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 		}
 
 		// Param tags
-		if _, ok := tagMap["param"]; ok {
-			for _, ret := range tagMap["param"] {
+		if _, ok := symbolMap[TagParam]; ok {
+			for _, ret := range symbolMap[TagParam] {
 				param, err := ParseRouteParam(ret)
 				if err != nil {
 					continue
@@ -80,10 +81,9 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 			}
 		}
 
-		if _, ok := tagMap["tag"]; ok {
-			for _, ret := range tagMap["tag"] {
+		if _, ok := symbolMap[TagTags]; ok {
+			for _, ret := range symbolMap[TagTags] {
 				tags, err := ParseRouteTag(ret)
-
 				if err != nil {
 					continue
 				}
@@ -92,6 +92,11 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 			}
 		}
 
+		if filePath == "../cherry/api/routes/tasks.go" && route.Path == "/tasks/{task_id}" && route.Verb == "PUT" {
+			fmt.Printf("%s - %s %s\n", filePath, route.Verb, route.Path)
+			fmt.Printf("%v\n", symbolMap)
+			fmt.Printf("%v\n", route.Tags)
+		}
 		if _, ok := routes[route.Path]; !ok {
 			routes[route.Path] = []Route{}
 		}
@@ -139,14 +144,14 @@ func ParseRouteParam(ret string) (param Param, err error) {
 
 	param.Name = retParts[0]
 	switch {
-	case retParts[1][0:3] == "int":
-		param.Type = "integer"
-	case retParts[1] == "bool":
-		param.Type = "boolean"
-	case retParts[1] == "string":
-		param.Type = "string"
-	case len(retParts[1]) >= 5 && retParts[1][0:5] == "float":
-		param.Type = "number"
+	case retParts[1][0:3] == GoTypeInt:
+		param.Type = SwaggerTypeInt
+	case retParts[1] == GoTypeBool:
+		param.Type = SwaggerTypeBool
+	case retParts[1] == GoTypeString:
+		param.Type = SwaggerTypeString
+	case len(retParts[1]) >= 5 && retParts[1][0:5] == GoTypeFloat:
+		param.Type = SwaggerTypeFloat
 	default:
 		param.Type = retParts[1]
 	}
@@ -158,26 +163,26 @@ func ParseRouteParam(ret string) (param Param, err error) {
 		if retPartLen <= curIdx {
 			break
 		}
-		if len(retParts[curIdx]) > 3 && retParts[curIdx][0:3] == "in:" {
+		if len(retParts[curIdx]) > 3 && retParts[curIdx][0:len(TagArgTransportPrefix)] == TagArgTransportPrefix {
 
 			ins := []string{
-				"path",
-				"query",
-				"form",
-				"header",
-				"body",
+				TransportPath,
+				TransportQuery,
+				TransportForm,
+				TransportHeader,
+				TransportBody,
 			}
 
 			if !inArray(retParts[curIdx][3:], ins) {
-				err = fmt.Errorf("Invalid transport '%s'", retParts[curIdx][3:])
+				err = fmt.Errorf("Invalid transport '%s'", retParts[curIdx][len(TagArgTransportPrefix):])
 				return
 			}
 
 			param.In = retParts[curIdx][3:]
 		}
 
-		if len(retParts[curIdx]) == 8 && (retParts[curIdx] == "optional" || retParts[curIdx] == "required") {
-			param.Required = retParts[curIdx] == "required"
+		if len(retParts[curIdx]) == 8 && (retParts[curIdx] == TagArgOptional || retParts[curIdx] == TagArgRequired) {
+			param.Required = retParts[curIdx] == TagArgRequired
 		}
 
 		curIdx = curIdx + 1

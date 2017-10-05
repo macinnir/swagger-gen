@@ -33,7 +33,7 @@ func GetModels(lines []string, filePath string) (models map[string]Model, err er
 
 	for _, symbol := range symbols {
 		comments, _, endLine := GetCommentBlock(lines, symbol.LineNum)
-		tagMap := ParseTags(comments)
+		tagMap := ParseSymbols(comments)
 
 		// Assume that after the end line will be the start of the model definition
 		currentLine := endLine + 1
@@ -42,7 +42,7 @@ func GetModels(lines []string, filePath string) (models map[string]Model, err er
 			log.Printf("No model tag found at filePath %s", filePath)
 			continue
 		}
-		log.Printf("TagMap %v", tagMap)
+
 		model.Name = tagMap["model"][0]
 
 		for {

@@ -33,6 +33,7 @@ type Path struct {
 	OperationID string                  `json:"operationId,omitempty"`
 	Parameters  []Parameter             `json:"parameters,omitempty"`
 	Responses   map[string]PathResponse `json:"responses"`
+	Tags        []string                `json:"tags,omitempty"`
 }
 
 // Parameter represents a parameter in a swagger specification
@@ -117,15 +118,17 @@ type Param struct {
 	In          string // query || path
 }
 
+// Tag represents a swagger tag for grouping operations
 type Tag struct {
 	Name         string          `json:"name"`
 	Description  string          `json:"description"`
-	ExternalDocs TagExternalDocs `json:"externalDocs"`
+	ExternalDocs TagExternalDocs `json:"externalDocs,omitempty"`
 }
 
+// TagExternalDocs represents a description and url for external documentation on a tag
 type TagExternalDocs struct {
-	Description string `json:"description"`
-	Url         string `json:"url"`
+	Description string `json:"description,omitempty"`
+	URL         string `json:"url,omitempty"`
 }
 
 type Model struct {

@@ -5,3 +5,5 @@ swagger.yaml
 debug
 dist/*
 *.exe
+
+swagger-meta\.json

@@ -81,7 +81,6 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 
 	for pathName, routes := range allRoutes {
 		s.Swagger.Paths[pathName] = map[string]Path{}
-		s.Swagger.Tags = []Tag{}
 		for _, route := range routes {
 			path := Path{}
 			// path.Description = route.Comments[0]
@@ -91,6 +90,9 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 			path.Consumes = []string{"application/json"}
 			path.Produces = []string{"application/json"}
 			path.Parameters = []Parameter{}
+			if len(route.Tags) > 0 {
+				path.Tags = route.Tags
+			}
 			for _, param := range route.Params {
 
 				parameter := Parameter{}
