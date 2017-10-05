@@ -27,6 +27,7 @@ type SwaggerInfo struct {
 
 type Path struct {
 	Description string                  `json:"description"`
+	Summary     string                  `json:"summary"`
 	Consumes    []string                `json:"consumes,omitempty"`
 	Produces    []string                `json:"produces,omitempty"`
 	OperationID string                  `json:"operationId,omitempty"`
@@ -34,12 +35,14 @@ type Path struct {
 	Responses   map[string]PathResponse `json:"responses"`
 }
 
+// Parameter represents a parameter in a swagger specification
 type Parameter struct {
-	In          string            `json:"in"`
-	Name        string            `json:"name"`
+	In          string            `json:"in,omitempty"`
+	Name        string            `json:"name,omitempty"`
 	Description string            `json:"description,omitempty"`
 	Required    bool              `json:"required"`
 	Schema      map[string]string `json:"schema,omitempty"`
+	Type        string            `json:"type,omitempty"`
 }
 
 type License struct {

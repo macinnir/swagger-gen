@@ -57,6 +57,26 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 		}
 	}
 
+	// Definitions (Models)
+	s.Swagger.Definitions = map[string]ModelDefinition{}
+
+	for _, model := range allModels {
+
+		definition := ModelDefinition{}
+
+		definition.Type = "object"
+		definition.Properties = map[string]Property{}
+
+		for _, field := range model.Fields {
+			property := Property{}
+			property.Type = field.Type
+
+			definition.Properties[field.Name] = property
+		}
+
+		s.Swagger.Definitions[model.Name] = definition
+	}
+
 	s.Swagger.Paths = map[string]map[string]Path{}
 
 	for pathName, routes := range allRoutes {
@@ -72,9 +92,31 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 			path.Produces = []string{"application/json"}
 			path.Parameters = []Parameter{}
 			for _, param := range route.Params {
+
 				parameter := Parameter{}
+				paramType := param.Type
+
+				// Currently ignoring array of objects as input. Possibly this would just be another model that encapsulates the array of data?
+				if param.Type[0:2] == "[]" {
+					paramType = param.Type[2:]
+				}
+
 				parameter.In = param.In
-				parameter.Required = param.Required
+				parameter.Name = param.Name
+				parameter.Description = param.Description
+
+				// Check if the return type is a known model
+				if _, ok := s.Swagger.Definitions[paramType]; ok {
+
+					parameter.Schema = map[string]string{}
+					parameter.Schema["$ref"] = "#/definitions/" + paramType
+
+				} else {
+					parameter.Required = param.Required
+					parameter.Schema = map[string]string{}
+					parameter.Type = paramType
+				}
+				path.Parameters = append(path.Parameters, parameter)
 			}
 			path.Responses = map[string]PathResponse{}
 			for _, response := range route.Responses {
@@ -96,24 +138,5 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 			}
 			s.Swagger.Paths[pathName][strings.ToLower(route.Verb)] = path
 		}
-	}
-
-	s.Swagger.Definitions = map[string]ModelDefinition{}
-
-	for _, model := range allModels {
-
-		definition := ModelDefinition{}
-
-		definition.Type = "object"
-		definition.Properties = map[string]Property{}
-
-		for _, field := range model.Fields {
-			property := Property{}
-			property.Type = field.Type
-
-			definition.Properties[field.Name] = property
-		}
-
-		s.Swagger.Definitions[model.Name] = definition
 	}
 }
