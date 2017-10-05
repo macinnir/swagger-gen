@@ -1,5 +1,8 @@
 # Swagger-Gen
 
+### Status
+[![Build Status](https://travis-ci.org/macinnir/swagger-gen.svg?branch=master)](https://travis-ci.org/macinnir/swagger-gen)
+
 # About
 
 > The goal behind this package is to recursively search for tags within a project and build a swagger file based off of what it finds. It purposely does not use language-specific reflection (e.g. golang ast) so as to leave open the option of multi-language support. 
