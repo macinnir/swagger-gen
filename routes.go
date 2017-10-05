@@ -72,7 +72,6 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 		// Param tags
 		if _, ok := tagMap["param"]; ok {
 			for _, ret := range tagMap["param"] {
-
 				param, err := ParseRouteParam(ret)
 				if err != nil {
 					continue
@@ -139,7 +138,18 @@ func ParseRouteParam(ret string) (param Param, err error) {
 	}
 
 	param.Name = retParts[0]
-	param.Type = retParts[1]
+	switch {
+	case retParts[1][0:3] == "int":
+		param.Type = "integer"
+	case retParts[1] == "bool":
+		param.Type = "boolean"
+	case retParts[1] == "string":
+		param.Type = "string"
+	case len(retParts[1]) >= 5 && retParts[1][0:5] == "float":
+		param.Type = "number"
+	default:
+		param.Type = retParts[1]
+	}
 	param.Required = true
 
 	curIdx := 2
