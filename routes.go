@@ -4,6 +4,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -14,8 +16,14 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 
 	routes = map[string][]Route{}
 
+	var symbols []Symbol
+
 	// Routes
-	symbols := GetSymbols(lines, "@route ")
+	symbols, err = GetSymbols(lines, "@route ")
+
+	if err != nil {
+		return
+	}
 
 	// If no symbols are found, skip
 	if len(symbols) == 0 {
@@ -29,35 +37,29 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 
 		tagMap := ParseTags(comments)
 
-		// Assume that after the block ends, so the method starts
-		route.LineNum = blockEnd + 1
-		route.FilePath = filePath
-
-		// Parse the route field (only use the first)
+		// Check that the route field exists (only use the first)
 		// Note: There may be more than one route tag, but anything after the first is ignored
-		log.Printf("Route: %s", tagMap)
 		if _, ok := tagMap["route"]; !ok {
 			log.Printf("No routes found at path %s", filePath)
 			continue
 		}
 
-		routeParts := strings.Fields(tagMap["route"][0])
-		if len(routeParts) < 2 {
-			log.Fatalf("The tag @route is not in the correct format. File: %s; Line: %d", filePath, route.LineNum)
+		if len(tagMap["route"]) < 1 {
+			log.Printf("No routes found at path %s", filePath)
+			continue
 		}
 
-		if len(comments) > 0 {
-			route.Description = comments[0]
+		route, routeErr := ParseRoute(tagMap["route"][0], blockEnd+1, filePath, comments)
+
+		if routeErr != nil {
+			log.Printf("Route Error: %s", routeErr.Error())
 		}
-		route.OperationID = routeParts[0]
-		route.Verb = routeParts[1]
-		route.Path = routeParts[2]
 
 		// Return tags
 		if _, ok := tagMap["return"]; ok {
 			for _, ret := range tagMap["return"] {
 
-				response, err := parseRouteResponse(ret)
+				response, err := ParseRouteResponse(ret)
 
 				if err != nil {
 					continue
@@ -71,7 +73,7 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 		if _, ok := tagMap["param"]; ok {
 			for _, ret := range tagMap["param"] {
 
-				param, err := parseRouteParam(ret)
+				param, err := ParseRouteParam(ret)
 				if err != nil {
 					continue
 				}
@@ -81,7 +83,7 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 
 		if _, ok := tagMap["tag"]; ok {
 			for _, ret := range tagMap["tag"] {
-				tags, err := parseRouteTag(ret)
+				tags, err := ParseRouteTag(ret)
 
 				if err != nil {
 					continue
@@ -101,7 +103,31 @@ func GetRoutes(lines []string, filePath string) (routes map[string][]Route, err 
 	return
 }
 
-func parseRouteParam(ret string) (param Param, err error) {
+// ParseRoute parses a route from a line
+func ParseRoute(line string, lineNum int, filePath string, comments []string) (route Route, err error) {
+
+	// Assume that after the block ends, so the method starts
+	route.LineNum = lineNum
+	route.FilePath = filePath
+	routeParts := strings.Fields(line)
+
+	if len(routeParts) < 2 {
+		err = fmt.Errorf("The tag @route is not in the correct format. File: %s; Line: %d", filePath, route.LineNum)
+		return
+	}
+
+	route.OperationID = routeParts[0]
+	route.Verb = routeParts[1]
+	route.Path = routeParts[2]
+
+	if len(comments) > 0 {
+		route.Description = comments[0]
+	}
+
+	return
+}
+
+func ParseRouteParam(ret string) (param Param, err error) {
 
 	retParts := strings.Fields(ret)
 
@@ -123,21 +149,21 @@ func parseRouteParam(ret string) (param Param, err error) {
 			break
 		}
 		if len(retParts[curIdx]) > 3 && retParts[curIdx][0:3] == "in:" {
-			in := retParts[curIdx][3:]
-			switch in {
-			case "path":
-				param.In = "path"
-			case "query":
-				param.In = "query"
-			case "form":
-				param.In = "form"
-			case "header":
-				param.In = "header"
-			case "body":
-				param.In = in
-			default:
-				param.In = "query"
+
+			ins := []string{
+				"path",
+				"query",
+				"form",
+				"header",
+				"body",
 			}
+
+			if !inArray(retParts[curIdx][3:], ins) {
+				err = fmt.Errorf("Invalid transport '%s'", retParts[curIdx][3:])
+				return
+			}
+
+			param.In = retParts[curIdx][3:]
 		}
 
 		if len(retParts[curIdx]) == 8 && (retParts[curIdx] == "optional" || retParts[curIdx] == "required") {
@@ -158,7 +184,9 @@ func parseRouteParam(ret string) (param Param, err error) {
 	return
 }
 
-func parseRouteResponse(ret string) (response Response, err error) {
+// ParseRouteResponse parses a route's response tag (@return)
+// Example: @return 200 Foo Returns a Foo object
+func ParseRouteResponse(ret string) (response Response, err error) {
 	retParts := strings.Fields(ret)
 
 	retPartLen := len(retParts)
@@ -178,7 +206,15 @@ func parseRouteResponse(ret string) (response Response, err error) {
 	return
 }
 
-func parseRouteTag(ret string) (tags []string, err error) {
+// ParseRouteTag parses a route tag line
+// Example: @tag foo,bar
+func ParseRouteTag(ret string) (tags []string, err error) {
+
+	if len(ret) == 0 {
+		err = errors.New("Tags cannot be empty")
+		return
+	}
+
 	if strings.Index(ret, ",") > -1 {
 		tags = strings.Split(ret, ",")
 	} else {

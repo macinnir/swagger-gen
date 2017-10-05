@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"strings"
 )
 
@@ -22,10 +23,16 @@ var Tags []string = []string{
 	TagParam,
 }
 
-func GetSymbols(lines []string, symbol string) (symbols []Symbol) {
+// GetSymbols returns a collection of symbol objects based on symbol string `symbol`
+func GetSymbols(lines []string, symbol string) (symbols []Symbol, err error) {
 
 	currentLine := 0
 	numLines := len(lines)
+
+	if numLines == 0 {
+		err = errors.New("Lines array cannot be empty")
+		return
+	}
 
 	for {
 

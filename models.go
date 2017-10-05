@@ -4,6 +4,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"strings"
 )
@@ -13,11 +14,18 @@ func GetModels(lines []string, filePath string) (models map[string]Model, err er
 
 	models = map[string]Model{}
 
+	var symbols []Symbol
+
 	// Routes
-	symbols := GetSymbols(lines, "@model ")
+	symbols, err = GetSymbols(lines, "@model ")
+
+	if err != nil {
+		return
+	}
 
 	// If no symbols are found, skip
 	if len(symbols) == 0 {
+		err = errors.New("No symbols found")
 		return
 	}
 
