@@ -1,13 +1,17 @@
 # Swagger-Gen
 
+Generate a swagger 2.0 file directly from comments in sources files. 
+
 ### Status
 [![Build Status](https://travis-ci.org/macinnir/swagger-gen.svg?branch=master)](https://travis-ci.org/macinnir/swagger-gen)
 
 # About
 
-> The goal behind this package is to recursively search for tags within a project and build a swagger file based off of what it finds. It purposely does not use language-specific reflection (e.g. golang ast) so as to leave open the option of multi-language support. 
+> The goal behind this package is to recursively search for comments/tags within a project and build a swagger file based off of what it finds. It purposely does not use language-specific reflection (e.g. golang ast) so as to leave open the option of multi-language support (albeit a long-term goal).  
 
-> In this initial commit, it finds model fields based on golang structs.  To the point of cross-language support, this will obviously need to change. Also, there are several hard-coded things in the code that need to be updated, so please treat this project as a PoC/WIP.  
+> For the first couple of releases, it finds model fields based on go structs.  To the point of cross-language support, this will obviously need to change. 
+
+> The meta data at the top of the generated swagger file is provided by a file called `swagger-meta.json` which will need to exist in the root of your project. You can read more about this file below.
 
 # Installation
 ```bash
@@ -32,6 +36,42 @@ Init | -i | Initializes a swagger-meta.json file with default values. It does no
 Source | -s | The source directory of your code you want scanned. | `.` (Current directory)
 Output | -o | The output directory where you want the swagger spec (e.g. `swagger.json`) written to. | `.` (Current Directory)
 Format | -f | The format of the output file. Possible values: `json` or `yaml` | `json` 
+
+# Swagger-meta.json
+
+The swagger-meta.json file contains the top-most information found in a swagger.json file, just without including any of the paths or defintions that this application will generate. 
+
+Described above in the **Options** section, there is an `-i` flag that creates a boilerplate file for convenience that you can update according to your needs.
+
+
+An example of this file is like so: 
+
+```json
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "My API Description",
+        "title": "My api title",
+        "version": "0.1.0",
+        "termsOfService": "TOS",
+        "contact": {
+            "email": "example@email.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        }
+    },
+    "host": "myhost.com",
+    "basePath": "/v1",
+    "tags": null,
+    "schemes": [
+        "http"
+    ],
+    "paths": null,
+    "definitions": null
+}
+```
 
 # Comments
 
