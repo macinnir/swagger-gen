@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -12,12 +13,28 @@ import (
 
 func main() {
 
+	help := flag.Bool("h", false, "Help")
 	init := flag.Bool("i", false, "Initialize the swagger-meta.json file with default values")
 	sourceDir := flag.String("s", ".", "The root of the source code you want swagger-gen to scan and build a swagger spec from. Defaults to current directory")
 	outDir := flag.String("o", ".", "The path to the directory where the generated swagger file will be output to. Defaults to current directory")
 	format := flag.String("f", "json", "Output format. json | yaml. Defaults to json")
 
 	flag.Parse()
+
+	if *help == true {
+		fmt.Println(`
+			Swagger Generation Tool
+			------------------------------------------------------
+			Usage: 
+				// Initialize a swagger-meta.json file 
+				swagger-gen -i 	
+
+				// Generate swagger documentation
+				swagger-gen -s path/to/src -o path/to/out -f json
+		
+		`)
+		return
+	}
 
 	if _, dirErr := os.Stat(path.Dir(*sourceDir)); os.IsNotExist(dirErr) {
 		log.Fatal(dirErr)
