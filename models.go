@@ -68,23 +68,49 @@ func GetModels(lines []string, filePath string) (models map[string]Model, err er
 
 			fieldLineParts := strings.Fields(strings.TrimPrefix(lines[currentLine], " "))
 			fieldType := ""
+			isArray := false
+
+			if fieldLineParts[1][0:2] == "[]" {
+				fieldLineParts[1] = fieldLineParts[1][2:]
+				isArray = true
+			}
+
+			if strings.Contains(fieldLineParts[1], ".") {
+				fieldParts := strings.Split(fieldLineParts[1], ".")
+				fieldLineParts[1] = fieldParts[len(fieldParts)-1]
+			}
+
+			fieldRef := ""
+			// float, int
 			switch {
 			case len(fieldLineParts[1]) > 4 && fieldLineParts[1][0:5] == "float":
 				fieldType = "number"
 			case fieldLineParts[1][0:3] == "int":
 				fieldType = "integer"
-			default:
+			case fieldLineParts[1] == "string":
 				fieldType = "string"
+			default:
+				if isArray == true {
+					fieldType = "array"
+					fieldRef = fieldLineParts[1]
+				} else {
+					fieldType = "#object"
+					fieldRef = fieldLineParts[1]
+				}
 			}
+
+			// fmt.Printf("FieldType: %s\n", fieldType)
 
 			field := ModelField{
 				fieldLineParts[0],
 				fieldType,
+				fieldRef,
 			}
 			currentLine = currentLine + 1
 			model.Fields = append(model.Fields, field)
 		}
 		models[model.Name] = model
+
 	}
 
 	return

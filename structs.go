@@ -141,6 +141,7 @@ type Model struct {
 type ModelField struct {
 	Name string
 	Type string
+	Ref  string
 }
 
 type Config struct {
@@ -156,8 +157,10 @@ type ModelDefinition struct {
 }
 
 type Property struct {
-	Type    string      `json:"type"`
-	Format  string      `json:"format,omitempty"`
-	Enum    []string    `json:"enum,omitempty"`
-	Default interface{} `json:"default,omitempty"`
+	Type    string            `json:"type,omitempty"`
+	Format  string            `json:"format,omitempty"`
+	Enum    []string          `json:"enum,omitempty"`
+	Default interface{}       `json:"default,omitempty"`
+	Items   map[string]string `json:"items,omitempty"`
+	Ref     string            `json:"$ref,omitempty"`
 }

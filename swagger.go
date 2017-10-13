@@ -55,6 +55,12 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 		for name, model := range models {
 			allModels[name] = model
 		}
+
+		// for arrayModelName, modelName := range arrayModels {
+		// 	if _, ok := allArrayModels[arrayModelName]; !ok {
+		// 		allArrayModels[arrayModelName] = modelName
+		// 	}
+		// }
 	}
 
 	// Definitions (Models)
@@ -70,6 +76,20 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 		for _, field := range model.Fields {
 			property := Property{}
 			property.Type = field.Type
+
+			if field.Type == "array" {
+
+				property.Type = "array"
+				property.Items = map[string]string{}
+
+				// TODO this does not support a simple array of strings
+				// if len(field.Ref) > 0 {
+				property.Items["$ref"] = "#/definitions/" + field.Ref
+				// }
+
+			} else if field.Type == "#object" {
+				property.Ref = "#/definitions/" + field.Ref
+			}
 
 			definition.Properties[field.Name] = property
 		}
@@ -98,28 +118,24 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 				parameter := Parameter{}
 				paramType := param.Type
 
-				// Currently ignoring array of objects as input. Possibly this would just be another model that encapsulates the array of data?
-				if param.Type[0:2] == "[]" {
-					paramType = param.Type[2:]
-				}
-
 				parameter.In = param.In
 				parameter.Name = param.Name
 				parameter.Description = param.Description
 
 				// Check if the return type is a known model
 				if _, ok := s.Swagger.Definitions[paramType]; ok {
-
 					parameter.Schema = map[string]string{}
 					parameter.Schema["$ref"] = "#/definitions/" + paramType
-
 				} else {
 					parameter.Required = param.Required
 					parameter.Schema = map[string]string{}
 					parameter.Type = paramType
 				}
 				path.Parameters = append(path.Parameters, parameter)
+
 			}
+
+			// Responses
 			path.Responses = map[string]PathResponse{}
 			for _, response := range route.Responses {
 				pr := PathResponse{}
