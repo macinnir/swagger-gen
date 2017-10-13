@@ -110,7 +110,7 @@ func TestParseTags(t *testing.T) {
 		"@param This is the param",
 	}
 
-	tagMap := ParseTags(lines)
+	tagMap := ParseSymbols(lines)
 
 	if len(tagMap) != 5 {
 		t.Errorf("TagMap should contain 5 elements (actually %d", len(tagMap))
@@ -131,7 +131,7 @@ func TestParseTags_NoResults(t *testing.T) {
 		"baz",
 	}
 
-	tagMap := ParseTags(lines)
+	tagMap := ParseSymbols(lines)
 
 	if len(tagMap) != 0 {
 		t.Errorf("TagMap should have returned an empty collection, but instead has a length of %d", len(tagMap))

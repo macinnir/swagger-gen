@@ -7,23 +7,41 @@ import (
 
 // Tag Constants
 const (
-	TagDescription = "description"
-	TagRoute       = "route"
-	TagModel       = "model"
-	TagReturn      = "return"
-	TagParam       = "param"
+	TagDescription        = "description"
+	TagRoute              = "route"
+	TagModel              = "model"
+	TagReturn             = "return"
+	TagParam              = "param"
+	TagTags               = "tags"
+	TagArgRequired        = "required"
+	TagArgOptional        = "optional"
+	TagArgTransportPrefix = "in:"
+	GoTypeInt             = "int"
+	SwaggerTypeInt        = "integer"
+	GoTypeString          = "string"
+	SwaggerTypeString     = "string"
+	GoTypeFloat           = "float"
+	SwaggerTypeFloat      = "number"
+	GoTypeBool            = "bool"
+	SwaggerTypeBool       = "boolean"
+	TransportPath         = "path"
+	TransportQuery        = "query"
+	TransportForm         = "form"
+	TransportHeader       = "header"
+	TransportBody         = "body"
 )
 
 // Tags is a collection of tagName constants
-var Tags []string = []string{
+var Tags = []string{
 	TagDescription,
 	TagRoute,
 	TagModel,
 	TagReturn,
 	TagParam,
+	TagTags,
 }
 
-// GetSymbols returns a collection of symbol objects based on symbol string `symbol`
+// GetSymbols returns a collection of symbol objects based on a symbol string
 func GetSymbols(lines []string, symbol string) (symbols []Symbol, err error) {
 
 	currentLine := 0
@@ -58,6 +76,8 @@ func GetSymbols(lines []string, symbol string) (symbols []Symbol, err error) {
 	return
 }
 
+// GetCommentBlock parses an entire comment block (comments above a function or struct) and returns them as a string array,
+// along with the numeric start and end position of the block
 func GetCommentBlock(lines []string, startLine int) (comments []string, blockStart int, blockEnd int) {
 
 	currentLine := startLine
@@ -102,7 +122,8 @@ func inArray(needle string, haystack []string) bool {
 	return false
 }
 
-func ParseTags(lines []string) (tags map[string][]string) {
+// ParseSymbols looks for comment tags (starts with `@`) and returns what it finds as a multi-dimensional array
+func ParseSymbols(lines []string) (tags map[string][]string) {
 
 	tags = map[string][]string{}
 

@@ -55,6 +55,12 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 		for name, model := range models {
 			allModels[name] = model
 		}
+
+		// for arrayModelName, modelName := range arrayModels {
+		// 	if _, ok := allArrayModels[arrayModelName]; !ok {
+		// 		allArrayModels[arrayModelName] = modelName
+		// 	}
+		// }
 	}
 
 	// Definitions (Models)
@@ -71,6 +77,20 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 			property := Property{}
 			property.Type = field.Type
 
+			if field.Type == "array" {
+
+				property.Type = "array"
+				property.Items = map[string]string{}
+
+				// TODO this does not support a simple array of strings
+				// if len(field.Ref) > 0 {
+				property.Items["$ref"] = "#/definitions/" + field.Ref
+				// }
+
+			} else if field.Type == "#object" {
+				property.Ref = "#/definitions/" + field.Ref
+			}
+
 			definition.Properties[field.Name] = property
 		}
 
@@ -81,7 +101,6 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 
 	for pathName, routes := range allRoutes {
 		s.Swagger.Paths[pathName] = map[string]Path{}
-		s.Swagger.Tags = []Tag{}
 		for _, route := range routes {
 			path := Path{}
 			// path.Description = route.Comments[0]
@@ -91,15 +110,13 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 			path.Consumes = []string{"application/json"}
 			path.Produces = []string{"application/json"}
 			path.Parameters = []Parameter{}
+			if len(route.Tags) > 0 {
+				path.Tags = route.Tags
+			}
 			for _, param := range route.Params {
 
 				parameter := Parameter{}
 				paramType := param.Type
-
-				// Currently ignoring array of objects as input. Possibly this would just be another model that encapsulates the array of data?
-				if param.Type[0:2] == "[]" {
-					paramType = param.Type[2:]
-				}
 
 				parameter.In = param.In
 				parameter.Name = param.Name
@@ -107,17 +124,18 @@ func (s *Swaggerf) BuildSwagger(rootPath string) {
 
 				// Check if the return type is a known model
 				if _, ok := s.Swagger.Definitions[paramType]; ok {
-
 					parameter.Schema = map[string]string{}
 					parameter.Schema["$ref"] = "#/definitions/" + paramType
-
 				} else {
 					parameter.Required = param.Required
 					parameter.Schema = map[string]string{}
 					parameter.Type = paramType
 				}
 				path.Parameters = append(path.Parameters, parameter)
+
 			}
+
+			// Responses
 			path.Responses = map[string]PathResponse{}
 			for _, response := range route.Responses {
 				pr := PathResponse{}
